@@ -1,6 +1,6 @@
 module github.com/RyanTrue/yandex-metrica-collector
 
-go 1.20
+go 1.21
 
 require (
 	github.com/avast/retry-go v3.0.0+incompatible
