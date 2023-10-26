@@ -3,6 +3,7 @@ module github.com/RyanTrue/yandex-metrica-collector
 go 1.21
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-resty/resty/v2 v2.7.0
