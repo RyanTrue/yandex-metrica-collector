@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-// CollectMetrics - method for capturing runtime and gopsutil metrics.
+// CollectMetrics - is a method of the Agent struct for capturing runtime and gopsutil metrics.
 func (a *Agent) CollectMetrics(ctx context.Context) (err error) {
 	aggTicker := time.NewTicker(time.Duration(a.params.PollInterval) * time.Second)
 	go func() {
@@ -132,6 +132,7 @@ func (a *Agent) sendRequestsWithRetries(req *resty.Request, jsonInput string) er
 	return nil
 }
 
+// New is a method for creating Agent object.
 func New(params *flags.Params, aggregator *aggregator.Aggregator, log zap.SugaredLogger) *Agent {
 	return &Agent{
 		params:     params,
@@ -140,6 +141,7 @@ func New(params *flags.Params, aggregator *aggregator.Aggregator, log zap.Sugare
 	}
 }
 
+// Agent is a struct for capturing and sending metrics to the server.
 type Agent struct {
 	params     *flags.Params
 	aggregator *aggregator.Aggregator
