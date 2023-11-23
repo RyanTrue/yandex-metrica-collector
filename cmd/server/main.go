@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/runner/server"
 )
 
 func main() {
@@ -17,7 +19,7 @@ func main() {
 		flags.WithTLSKeyPath(),
 	)
 	ctx := context.Background()
-	serverRunner := runner.New(params)
+	serverRunner := server.New(params)
 
 	serverRunner.Run(ctx)
 }

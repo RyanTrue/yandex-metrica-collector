@@ -2,9 +2,10 @@ package router
 
 import (
 	"fmt"
-	"github.com/RyanTrue/yandex-metrica-collector/internal/compressor"
+
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
-	log "github.com/RyanTrue/yandex-metrica-collector/internal/logger"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/middlewares/compressor"
+	log "github.com/RyanTrue/yandex-metrica-collector/internal/middlewares/logger"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/router/handlers"
 	"github.com/go-chi/chi/v5"
 )
@@ -18,6 +19,7 @@ func New(params flags.Params) (*chi.Mux, error) {
 	r := chi.NewRouter()
 	r.Use(log.RequestLogger)
 	r.Use(compressor.Compress)
+	r.Use(handler.CheckSubscription)
 	r.Post("/update/", handler.SaveMetricFromJSON)
 	r.Post("/value/", handler.GetMetricFromJSON)
 	r.Post("/update/{type}/{name}/{value}", handler.SaveMetric)

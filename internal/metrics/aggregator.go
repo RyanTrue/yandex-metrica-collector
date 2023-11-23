@@ -1,12 +1,13 @@
 package aggregator
 
 import (
-	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/mem"
 	"math/rand"
 	"runtime"
 	"strconv"
+
+	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 // AggregateRuntimeMetrics - a method for capturing and upserting runtime metrics.

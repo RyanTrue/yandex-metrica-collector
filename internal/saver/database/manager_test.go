@@ -2,10 +2,11 @@ package database
 
 import (
 	"context"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestManager_Restore(t *testing.T) {
