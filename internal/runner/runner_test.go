@@ -1,12 +1,11 @@
 package server
 
 import (
-	"fmt"
+	"context"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go.uber.org/zap"
 	"os"
 	"os/signal"
 	"syscall"
@@ -25,13 +24,6 @@ func TestRunner_Run(t *testing.T) {
 		mockedPprofServer := newMockServer(t)
 		mockedPprofServer.On("ListenAndServe").Return(nil)
 
-		logger, err := zap.NewDevelopment()
-		if err != nil {
-			fmt.Println("error while creating logger, exit")
-			return
-		}
-		defer logger.Sync()
-		log := logger.Sugar()
 		r := Runner{
 			saver:           mockedSaver,
 			metricsInterval: 1,
@@ -40,7 +32,6 @@ func TestRunner_Run(t *testing.T) {
 			tlsKey:          "",
 			appSrv:          mockedAppServer,
 			pprofSrv:        mockedPprofServer,
-			logger:          log,
 		}
 		ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 		defer stop()
@@ -64,13 +55,6 @@ func TestRunner_Run(t *testing.T) {
 
 		sigs := make(chan os.Signal, 1)
 		signal.Notify(sigs, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
-
-		logger, err := zap.NewDevelopment()
-		if err != nil {
-			fmt.Println("error while creating logger, exit")
-			return
-		}
-		defer logger.Sync()
 		r := Runner{
 			saver:           mockedSaver,
 			metricsInterval: 1,
@@ -80,7 +64,6 @@ func TestRunner_Run(t *testing.T) {
 			appSrv:          mockedAppServer,
 			pprofSrv:        mockedPprofServer,
 			signals:         sigs,
-			logger:          logger.Sugar(),
 		}
 		go r.Run(ctx)
 		time.Sleep(3 * time.Second)
