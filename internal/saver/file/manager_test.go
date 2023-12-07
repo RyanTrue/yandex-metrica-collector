@@ -2,10 +2,11 @@ package file
 
 import (
 	"context"
-	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestManager_Restore(t *testing.T) {
