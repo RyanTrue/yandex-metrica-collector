@@ -1,9 +1,8 @@
 package aggregator
 
 import (
+	"github.com/RyanTrue/yandex-metrica-collector/internal/agent/collector"
 	"testing"
-
-	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 )
 
 func BenchmarkAggregator_AggregateGopsutilMetrics(b *testing.B) {

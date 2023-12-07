@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/agent/runner"
 
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
-	"github.com/RyanTrue/yandex-metrica-collector/internal/runner/server"
 )
 
 func main() {
@@ -17,9 +17,12 @@ func main() {
 		flags.WithDatabase(),
 		flags.WithKey(),
 		flags.WithTLSKeyPath(),
+		flags.WithTrustedSubnet(),
+		flags.WithGrpc(),
+		flags.WithGrpcAddr(),
 	)
 	ctx := context.Background()
-	serverRunner := server.New(params)
+	serverRunner := runner.New(params)
 
 	serverRunner.Run(ctx)
 }
