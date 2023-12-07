@@ -2,11 +2,11 @@ package router
 
 import (
 	"fmt"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/server/middlewares/compressor"
+	log "github.com/RyanTrue/yandex-metrica-collector/internal/server/middlewares/logger"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/server/router/handlers"
 
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
-	"github.com/RyanTrue/yandex-metrica-collector/internal/middlewares/compressor"
-	log "github.com/RyanTrue/yandex-metrica-collector/internal/middlewares/logger"
-	"github.com/RyanTrue/yandex-metrica-collector/internal/router/handlers"
 	"github.com/go-chi/chi/v5"
 )
 

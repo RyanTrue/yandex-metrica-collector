@@ -1,17 +1,17 @@
-package agent
+package runner
 
 import (
 	"context"
 	"fmt"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/agent/collector"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/agent/metrics"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
 	agent2 "github.com/RyanTrue/yandex-metrica-collector/internal/agent"
-	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
-	aggregator "github.com/RyanTrue/yandex-metrica-collector/internal/metrics"
 	"go.uber.org/zap"
 )
 

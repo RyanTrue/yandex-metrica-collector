@@ -4,9 +4,8 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/agent/collector"
 	"os"
-
-	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 )
 
 // Restore - a method for restoring metrics state from file.

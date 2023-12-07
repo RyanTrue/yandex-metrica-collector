@@ -11,12 +11,17 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+
+	collector2 "github.com/RyanTrue/yandex-metrica-collector/internal/agent/collector"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/agent/metrics"
+	pb "github.com/RyanTrue/yandex-metrica-collector/proto"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"os"
 	"time"
 
-	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
-	aggregator "github.com/RyanTrue/yandex-metrica-collector/internal/metrics"
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
 )
@@ -41,6 +46,17 @@ func (a *Agent) CollectMetrics(ctx context.Context) {
 func (a *Agent) SendMetricsLoop(ctx context.Context) (err error) {
 	numRequests := make(chan struct{}, a.params.RateLimit)
 	reportTicker := time.NewTicker(time.Duration(a.params.ReportInterval) * time.Second)
+
+	if a.params.GrpcRunAddr != "" {
+		// устанавливаем соединение с сервером
+		conn, err := grpc.Dial(a.params.GrpcRunAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+		a.grpcMetricsClient = pb.NewMetricsClient(conn)
+	}
+
 	// send metrics by timer
 	for {
 		select {
@@ -65,14 +81,50 @@ func (a *Agent) SendMetricsLoop(ctx context.Context) (err error) {
 
 // SendMetrics - a method that encapsulates the logic for sending a http request to the server.
 func (a *Agent) SendMetrics(ctx context.Context) error {
+	if err := a.sendHTTP(ctx); err != nil {
+		return err
+	}
+	a.log.Info("metrics were successfully sent to HTTP server")
+	if a.params.GrpcRunAddr != "" {
+		if err := a.sendGrpc(ctx); err != nil {
+			return err
+		}
+		a.log.Info("metrics were successfully sent to gRPC server")
+	}
+	return nil
+}
+
+func (a *Agent) sendGrpc(ctx context.Context) error {
+	for _, v := range collector2.Collector().Metrics {
+		request := pb.MetricRequest{
+			ID:    v.ID,
+			MType: v.MType,
+		}
+		switch request.MType {
+		case collector2.Gauge:
+			request.Value = *v.GaugeValue
+		case collector2.Counter:
+			request.Delta = *v.CounterValue
+		}
+
+		if _, err := a.grpcMetricsClient.SaveMetricFromJSON(ctx, &request); err != nil {
+			return errors.Errorf("error while sending metric to grpc server: %s", err.Error())
+
+		}
+	}
+	return nil
+}
+
+func (a *Agent) sendHTTP(ctx context.Context) error {
 	req := a.client.SetRetryCount(3).R().
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Accept-Encoding", "gzip").
 		SetHeader("Content-Encoding", "gzip").
-		SetHeader("X-Real-IP", "173.17.0.2")
+		SetHeader("X-Real-IP", "172.17.0.2").
+		SetContext(ctx)
 
-	for _, v := range collector.Collector().Metrics {
-		jsonInput, _ := json.Marshal(collector.MetricRequest{
+	for _, v := range collector2.Collector().Metrics {
+		jsonInput, _ := json.Marshal(collector2.MetricRequest{
 			ID:    v.ID,
 			MType: v.MType,
 			Delta: v.CounterValue,
@@ -97,7 +149,6 @@ func (a *Agent) SendMetrics(ctx context.Context) error {
 			return fmt.Errorf("error while sending agent request for counter metric: %w", err)
 		}
 	}
-	a.log.Info("metrics sent on server")
 	return nil
 }
 
@@ -139,14 +190,16 @@ func New(params *flags.Params, aggregator *aggregator.Aggregator, log *zap.Sugar
 		}
 		agent.cryptoKey = publicKey.(*rsa.PublicKey)
 	}
+
 	return agent, nil
 }
 
 // Agent is a struct for capturing and sending metrics to the server.
 type Agent struct {
-	params     *flags.Params
-	aggregator *aggregator.Aggregator
-	cryptoKey  *rsa.PublicKey
-	log        *zap.SugaredLogger
-	client     *resty.Client
+	params            *flags.Params
+	aggregator        *aggregator.Aggregator
+	cryptoKey         *rsa.PublicKey
+	log               *zap.SugaredLogger
+	client            *resty.Client
+	grpcMetricsClient pb.MetricsClient
 }

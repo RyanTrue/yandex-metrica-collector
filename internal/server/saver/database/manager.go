@@ -4,9 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/RyanTrue/yandex-metrica-collector/internal/agent/collector"
 	"time"
-
-	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 )
 
 // Restore - a method for restoring metrics state from DB.
