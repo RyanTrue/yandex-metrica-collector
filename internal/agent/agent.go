@@ -4,8 +4,12 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/collector"
 	"github.com/RyanTrue/yandex-metrica-collector/internal/flags"
@@ -14,6 +18,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
 	"log"
+	"os"
 	"time"
 )
 
@@ -97,7 +102,15 @@ func (a *Agent) sendMetrics(client *resty.Client) error {
 			dst := sha256.Sum256(jsonInput)
 			req.SetHeader("HashSHA256", fmt.Sprintf("%x", dst))
 		}
-		if err := a.sendRequestsWithRetries(req, string(jsonInput)); err != nil {
+		message := string(jsonInput)
+		if a.cryptoKey != nil {
+			encryptedData, err := rsa.EncryptPKCS1v15(rand.Reader, a.cryptoKey, jsonInput)
+			if err != nil {
+				return fmt.Errorf("error encrypting message with public key: %w", err)
+			}
+			message = string(encryptedData)
+		}
+		if err := a.sendRequestsWithRetries(req, message); err != nil {
 			return fmt.Errorf("error while sending agent request for counter metric: %w", err)
 		}
 	}
@@ -133,17 +146,31 @@ func (a *Agent) sendRequestsWithRetries(req *resty.Request, jsonInput string) er
 }
 
 // New is a method for creating Agent object.
-func New(params *flags.Params, aggregator *aggregator.Aggregator, log zap.SugaredLogger) *Agent {
-	return &Agent{
+func New(params *flags.Params, aggregator *aggregator.Aggregator, log zap.SugaredLogger) (*Agent, error) {
+	agent := &Agent{
 		params:     params,
 		aggregator: aggregator,
 		log:        log,
 	}
+	if params.CryptoKeyPath != "" {
+		b, err := os.ReadFile(params.CryptoKeyPath)
+		if err != nil {
+			return nil, fmt.Errorf("error while reading file with crypto public key: %w", err)
+		}
+		block, _ := pem.Decode(b)
+		publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing public key: %w", err)
+		}
+		agent.cryptoKey = publicKey.(*rsa.PublicKey)
+	}
+	return agent, nil
 }
 
 // Agent is a struct for capturing and sending metrics to the server.
 type Agent struct {
 	params     *flags.Params
 	aggregator *aggregator.Aggregator
+	cryptoKey  *rsa.PublicKey
 	log        zap.SugaredLogger
 }
