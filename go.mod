@@ -4,14 +4,12 @@ go 1.21
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/shirou/gopsutil/v3 v3.23.4
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
-	golang.org/x/sync v0.3.0
 	golang.org/x/tools v0.12.1-0.20230825192346-2191a27a6dc5
 	honnef.co/go/tools v0.4.6
 )
